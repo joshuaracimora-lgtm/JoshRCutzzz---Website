@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JoshRCutz — Book a Cut</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --gold: #c8a96e;
+      --gold-dark: #b8994e;
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --surface2: #1e1e1e;
+      --border: #2a2a2a;
+      --text: #f0f0f0;
+      --muted: #888;
+      --green: #5bba82;
+      --radius: 10px;
+      --radius-sm: 7px;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px;
+    }
+
+    .page {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 44px 20px 36px;
+    }
+
+    .logo {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span {
+      color: var(--gold);
+    }
+
+    .tagline {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    /* Services */
+    .services-strip {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .svc-info {
+      flex: 1;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      text-align: center;
+    }
+
+    .svc-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .svc-price {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-top: 2px;
+    }
+
+    .svc-desc {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .divider {
+      height: 0.5px;
+      background: var(--border);
+      margin: 0 0 28px;
+    }
+
+    /* Slot list */
+    .date-group {
+      margin-bottom: 28px;
+    }
+
+    .date-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .date-label {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .date-count {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      padding: 2px 9px;
+      border-radius: 20px;
+    }
+
+    .time-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .time-chip {
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .time-chip:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: #1a1500;
+    }
+
+    /* Empty / loading states */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .empty-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Booking modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 100;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 28px 24px 44px;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .modal-drag {
+      width: 36px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 22px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .modal-slot-info {
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .modal-slot-info strong {
+      color: var(--text);
+      display: block;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    .svc-section-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
+    .svc-picker {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .svc-opt {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .svc-opt:hover {
+      border-color: var(--gold);
+    }
+
+    .svc-opt.sel {
+      border-color: var(--gold);
+      background: #1a1500;
+    }
+
+    .svc-opt-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .svc-opt-price {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-top: 3px;
+    }
+
+    .svc-opt-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Form fields */
+    .fg {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .fg label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .fg input {
+      font-size: 14px;
+      padding: 12px 13px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text);
+      width: 100%;
+    }
+
+    .fg input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    .confirm-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--gold);
+      color: #111;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+
+    .confirm-btn:hover {
+      background: var(--gold-dark);
+    }
+
+    .confirm-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .cancel-link {
+      display: block;
+      text-align: center;
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      width: 100%;
+    }
+
+    .sending {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .sending.show {
+      display: block;
+    }
+
+    /* Success screen */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .success-screen.show {
+      display: block;
+    }
+
+    .success-icon {
+      font-size: 52px;
+      margin-bottom: 16px;
+    }
+
+    .success-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .success-sub {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+
+    .success-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      text-align: left;
+      margin-bottom: 24px;
+    }
+
+    .success-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 8px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .success-row:last-child {
+      border-bottom: none;
+    }
+
+    .success-row span:first-child {
+      color: var(--muted);
+    }
+
+    .success-row span:last-child {
+      font-weight: 500;
+    }
+
+    .back-btn {
+      font-size: 13px;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    /* Toast */
+    .toast-wrap {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    .toast {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 20px;
+      background: var(--gold);
+      color: #111;
+      opacity: 0;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .toast.err {
+      background: #e27575;
+      color: #fff;
+    }
+
+    .footer {
+      text-align: center;
+      padding-top: 40px;
+      font-size: 11px;
+      color: #333;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hero">
+    <div class="logo"><span style="font-size:30px;margin-right:6px">💈</span>Josh<span>R</span>Cutz</div>
+    <div class="tagline">Book a slot</div>
+  </div>
+
+  <div id="booking-view">
+    <div class="services-strip">
+      <div class="svc-info">
+        <div class="svc-name">Taper</div>
+        <div class="svc-price">$30</div>
+        <div class="svc-desc">Clean &amp; classic</div>
+      </div>
+      <div class="svc-info">
+        <div class="svc-name">Fade</div>
+        <div class="svc-price">$35</div>
+        <div class="svc-desc">Sharp &amp; fresh</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div id="slots-container"></div>
+  </div>
+
+  <div class="success-screen" id="success-screen">
+    <div class="success-icon">✂️</div>
+    <div class="success-title">You're booked!</div>
+    <div class="success-sub">See you soon. Check your email for confirmation.</div>
+    <div class="success-card" id="success-detail"></div>
+    <button class="back-btn" onclick="window.showBookingView()">Book another appointment</button>
+  </div>
+
+  <div class="footer">JoshRCutz · Fresh cuts only</div>
+</div>
+
+<div class="modal-overlay" id="bmodal">
+  <div class="modal">
+    <div class="modal-drag"></div>
+    <div class="modal-title">Book your spot</div>
+    <div class="modal-slot-info" id="mslot-info"></div>
+    <div class="svc-section-label">Choose your service</div>
+    <div class="svc-picker">
+      <div class="svc-opt sel" id="svc-taper" onclick="window.pickSvc('taper')">
+        <div class="svc-opt-name">Taper</div>
+        <div class="svc-opt-price">$30</div>
+        <div class="svc-opt-sub">Clean &amp; classic</div>
+      </div>
+      <div class="svc-opt" id="svc-fade" onclick="window.pickSvc('fade')">
+        <div class="svc-opt-name">Fade</div>
+        <div class="svc-opt-price">$35</div>
+        <div class="svc-opt-sub">Sharp &amp; fresh</div>
+      </div>
+    </div>
+    <div class="fg"><label>Your name</label><input type="text" id="mname" placeholder="e.g. Marcus Johnson"/></div>
+    <div class="fg"><label>Email address</label><input type="email" id="memail" placeholder="you@example.com"/></div>
+    <button class="confirm-btn" id="confirm-btn" onclick="window.confirmBook()">Confirm booking</button>
+    <button class="cancel-link" onclick="window.closeModal()">Cancel</button>
+    <div class="sending" id="sending-msg">Sending confirmation...</div>
+  </div>
+</div>
+
+<div class="toast-wrap"><div class="toast" id="toast"></div></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {
+  getFirestore,
+  collection,
+  onSnapshot,
+  doc,
+  updateDoc,
+  query,
+  orderBy
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAOu-ysXnDLz2498QSUlHViSZU2LhzVR28",
+  authDomain: "joshrcutz.firebaseapp.com",
+  projectId: "joshrcutz",
+  storageBucket: "joshrcutz.firebasestorage.app",
+  messagingSenderId: "658068371956",
+  appId: "1:658068371956:web:19c96f21a5342bda8861a1"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const slotsCol = collection(db, 'slots');
+
+let slots = [];
+let loaded = false;
+let pendId = null;
+let selSvc = 'taper';
+
+// Load EmailJS config from admin settings stored in localStorage
+let cfg = {};
+try { cfg = JSON.parse(localStorage.getItem('jrc_cfg') || '{}'); } catch {}
+
+const EMAILJS_SERVICE_ID      = cfg.serviceId       || '';
+const EMAILJS_TEMPLATE_ID     = cfg.templateId      || '';
+const EMAILJS_CANCEL_TEMPLATE = cfg.cancelTemplateId || '';
+const EMAILJS_PUBLIC_KEY      = cfg.publicKey        || '';
+const BARBER_EMAIL            = cfg.barberEmail      || '';
+cfg = { serviceId: EMAILJS_SERVICE_ID, templateId: EMAILJS_TEMPLATE_ID, cancelTemplateId: EMAILJS_CANCEL_TEMPLATE, publicKey: EMAILJS_PUBLIC_KEY, barberEmail: BARBER_EMAIL };
+
+// Live listener — falls back to client-side sort if Firestore index is missing
+onSnapshot(
+  query(slotsCol, orderBy('date'), orderBy('start')),
+  snap => {
+    slots = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+    loaded = true;
+    render();
+  },
+  () => {
+    onSnapshot(slotsCol, snap => {
+      slots = snap.docs
+        .map(d => ({ ...d.data(), _id: d.id }))
+        .sort((a, b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start));
+      loaded = true;
+      render();
+    });
+  }
+);
+
+// Format a time range like "10:00am–11:00am"
+function fmtRange(s, e) {
+  const [sh, sm] = s.split(':').map(Number);
+  const [eh, em] = e.split(':').map(Number);
+  const sa = sh >= 12 ? 'pm' : 'am';
+  const ea = eh >= 12 ? 'pm' : 'am';
+  const sh12 = sh % 12 || 12;
+  const eh12 = eh % 12 || 12;
+  const start = `${sh12}:${sm.toString().padStart(2, '0')}`;
+  const end = `${eh12}:${em.toString().padStart(2, '0')}${ea}`;
+  return sa === ea ? `${start}–${end}` : `${start}${sa}–${end}`;
+}
+
+// Format a date — shows "Today" or "Tomorrow" for imminent dates
+function fmtDate(d) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tom = new Date(today);
+  tom.setDate(tom.getDate() + 1);
+  const dd = new Date(d + 'T00:00:00');
+  dd.setHours(0, 0, 0, 0);
+  if (dd.getTime() === today.getTime()) return 'Today';
+  if (dd.getTime() === tom.getTime()) return 'Tomorrow';
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+function render() {
+  const today = new Date().toISOString().split('T')[0];
+  const el = document.getElementById('slots-container');
+
+  if (!loaded) {
+    el.innerHTML = '<div class="loading">Loading...</div>';
+    return;
+  }
+
+  const future = slots.filter(s => s.date >= today);
+  const open = future.filter(s => s.status === 'open');
+
+  if (future.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">✂️</div>No available slots right now.<br>Check back soon — new times drop regularly.</div>';
+    return;
+  }
+
+  if (open.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📅</div>All slots are currently booked out.<br>Check back soon for new availability.</div>';
+    return;
+  }
+
+  const grouped = {};
+  open.forEach(s => {
+    if (!grouped[s.date]) grouped[s.date] = [];
+    grouped[s.date].push(s);
+  });
+
+  el.innerHTML = Object.entries(grouped).map(([date, ds]) => `
+    <div class="date-group">
+      <div class="date-header">
+        <div class="date-label">${fmtDate(date)}</div>
+        <div class="date-count">${ds.length} open</div>
+      </div>
+      <div class="time-chips">
+        ${ds.map(s => `<div class="time-chip" onclick="window.openModal('${s._id}')">${fmtRange(s.start, s.end)}</div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+window.pickSvc = function (svc) {
+  selSvc = svc;
+  document.getElementById('svc-taper').classList.toggle('sel', svc === 'taper');
+  document.getElementById('svc-fade').classList.toggle('sel', svc === 'fade');
+};
+
+window.openModal = function (id) {
+  pendId = id;
+  const s = slots.find(x => x._id === id);
+  const dt = new Date(s.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  document.getElementById('mslot-info').innerHTML = `<strong>${dt}</strong>${fmtRange(s.start, s.end)}`;
+  document.getElementById('mname').value = '';
+  document.getElementById('memail').value = '';
+  document.getElementById('sending-msg').classList.remove('show');
+  document.getElementById('confirm-btn').disabled = false;
+  window.pickSvc('taper');
+  document.getElementById('bmodal').classList.add('open');
+  setTimeout(() => document.getElementById('mname').focus(), 200);
+};
+
+window.closeModal = function () {
+  document.getElementById('bmodal').classList.remove('open');
+  pendId = null;
+};
+
+window.confirmBook = async function () {
+  const name = document.getElementById('mname').value.trim();
+  const email = document.getElementById('memail').value.trim();
+  if (!name) { showToast('Please enter your name', true); return; }
+  if (!email) { showToast('Please enter your email', true); return; }
+
+  const s = slots.find(x => x._id === pendId);
+  if (!s || s.status !== 'open') { showToast('Slot no longer available', true); window.closeModal(); return; }
+
+  const svcLabel = selSvc === 'taper' ? 'Taper — $30' : 'Fade — $35';
+  await updateDoc(doc(db, 'slots', pendId), { status: 'booked', client: name, email, svc: svcLabel });
+
+  const hasEJS = cfg.serviceId && cfg.templateId && cfg.publicKey && cfg.barberEmail;
+  if (hasEJS) {
+    document.getElementById('sending-msg').classList.add('show');
+    document.getElementById('confirm-btn').disabled = true;
+    try {
+      emailjs.init(cfg.publicKey);
+      const dt = new Date(s.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      const base = {
+        client_name: name,
+        client_email: email,
+        slot_info: `${dt} · ${fmtRange(s.start, s.end)}`,
+        service: svcLabel,
+        barber_email: cfg.barberEmail
+      };
+      await emailjs.send(cfg.serviceId, cfg.templateId, { ...base, to_email: email });
+      await emailjs.send(cfg.serviceId, cfg.templateId, { ...base, to_email: cfg.barberEmail, client_name: 'New booking: ' + name });
+    } catch (e) {
+      showToast('Booked! (Email failed: ' + (e?.text || e?.message || 'check EmailJS settings') + ')', true);
+      window.closeModal();
+      showSuccess(s, name, email, svcLabel);
+      return;
+    }
+  }
+
+  window.closeModal();
+  showSuccess(s, name, email, svcLabel);
+};
+
+function showSuccess(s, name, email, svc) {
+  document.getElementById('booking-view').style.display = 'none';
+  document.getElementById('success-screen').classList.add('show');
+  const dt = new Date(s.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  document.getElementById('success-detail').innerHTML = `
+    <div class="success-row"><span>Name</span><span>${name}</span></div>
+    <div class="success-row"><span>Service</span><span>${svc}</span></div>
+    <div class="success-row"><span>Date</span><span>${dt}</span></div>
+    <div class="success-row"><span>Time</span><span>${fmtRange(s.start, s.end)}</span></div>
+    <div class="success-row"><span>Confirmation to</span><span>${email}</span></div>
+  `;
+}
+
+window.showBookingView = function () {
+  document.getElementById('booking-view').style.display = 'block';
+  document.getElementById('success-screen').classList.remove('show');
+};
+
+function showToast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (err ? ' err' : '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+document.getElementById('bmodal').addEventListener('click', e => {
+  if (e.target === document.getElementById('bmodal')) window.closeModal();
+});
+</script>
+</body>
+</html>

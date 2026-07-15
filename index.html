@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JoshRCutz — Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --gold: #c8a96e;
+      --gold-dark: #b8994e;
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --surface2: #1e1e1e;
+      --border: #2a2a2a;
+      --text: #f0f0f0;
+      --muted: #888;
+      --green: #5bba82;
+      --green-bg: #0d1f16;
+      --green-border: #2a6e47;
+      --blue: #7b8ff7;
+      --blue-bg: #0e0e2a;
+      --blue-border: #3d4a9e;
+      --red: #e27575;
+      --red-bg: #1f0d0d;
+      --red-border: #7a3333;
+      --radius: 10px;
+      --radius-sm: 7px;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px;
+    }
+
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background: var(--surface);
+      border-right: 0.5px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+    }
+
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-brand {
+      padding: 22px 20px 18px;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .brand-name {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-name span {
+      color: var(--gold);
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .sidebar-nav {
+      padding: 12px 10px;
+      flex: 1;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      margin-bottom: 2px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item svg {
+      flex-shrink: 0;
+      opacity: 0.6;
+    }
+
+    .nav-item:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: var(--surface2);
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    .nav-item.active svg {
+      opacity: 1;
+    }
+
+    .sidebar-footer {
+      padding: 14px 16px;
+      border-top: 0.5px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .status-dot.ready {
+      background: var(--green);
+    }
+
+    /* Topbar */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 0.5px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .page-title {
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .page-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 7px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: 0.5px solid var(--border);
+      background: none;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .btn.gold {
+      background: var(--gold);
+      color: #111;
+      border-color: var(--gold);
+      font-weight: 600;
+    }
+
+    .btn.gold:hover {
+      background: var(--gold-dark);
+    }
+
+    .gold-btn {
+      padding: 10px 24px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--gold);
+      color: #111;
+      cursor: pointer;
+    }
+
+    .gold-btn:hover {
+      background: var(--gold-dark);
+    }
+
+    /* Content */
+    .content {
+      padding: 28px;
+      flex: 1;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    /* Stats */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .stat-val {
+      font-size: 26px;
+      font-weight: 600;
+    }
+
+    .sec-head {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 12px;
+    }
+
+    /* Slots table */
+    .slot-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .slot-table th {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0 14px 10px;
+      text-align: left;
+      font-weight: 500;
+    }
+
+    .slot-table td {
+      padding: 12px 14px;
+      border-top: 0.5px solid var(--border);
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .slot-table tr:hover td {
+      background: var(--surface2);
+    }
+
+    .pill {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .pill.open {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 0.5px solid var(--green-border);
+    }
+
+    .pill.booked {
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 0.5px solid var(--blue-border);
+    }
+
+    .pill.cancelled {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 0.5px solid var(--red-border);
+    }
+
+    .client-cell {
+      font-size: 12px;
+      color: var(--green);
+      font-weight: 500;
+    }
+
+    .client-email {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .tbl-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tbl-btn {
+      font-size: 11px;
+      padding: 4px 10px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: none;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .tbl-btn:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .tbl-btn.danger:hover {
+      background: var(--red-bg);
+      color: var(--red);
+      border-color: var(--red-border);
+    }
+
+    .move-sel {
+      font-size: 11px;
+      padding: 4px 8px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--muted);
+      margin-top: 6px;
+      width: 100%;
+      max-width: 260px;
+    }
+
+    /* Forms */
+    .form-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .fg {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .fg label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .fg input,
+    .fg select {
+      font-size: 13px;
+      padding: 9px 11px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .fg input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    /* Settings */
+    .settings-wrap {
+      max-width: 540px;
+    }
+
+    .settings-section {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 16px;
+    }
+
+    .settings-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .settings-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+
+    .settings-desc a {
+      color: var(--gold);
+    }
+
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .input-row label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .input-row input {
+      font-size: 13px;
+      padding: 9px 11px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text);
+      width: 100%;
+    }
+
+    .input-row input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    .vars-box {
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 2;
+    }
+
+    .vars-box code {
+      color: var(--text);
+      background: #2a2a2a;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .connected-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: var(--green-bg);
+      color: var(--green);
+      border: 0.5px solid var(--green-border);
+      margin-top: 6px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 26px;
+      width: 340px;
+      max-width: 92vw;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .modal-slot {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal input {
+      width: 100%;
+      font-size: 13px;
+      padding: 9px 11px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .modal input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    .modal-acts {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .modal-acts button {
+      flex: 1;
+      padding: 10px;
+      font-size: 13px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: 0.5px solid var(--border);
+      background: none;
+      color: var(--muted);
+    }
+
+    .modal-acts button:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .modal-acts .confirm {
+      background: var(--gold);
+      color: #111;
+      border-color: var(--gold);
+      font-weight: 600;
+    }
+
+    .modal-acts .confirm:hover {
+      background: var(--gold-dark);
+    }
+
+    .modal-acts .confirm:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .sending {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .sending.show {
+      display: block;
+    }
+
+    /* Toast */
+    .toast-wrap {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    .toast {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 20px;
+      border-radius: 20px;
+      background: var(--gold);
+      color: #111;
+      opacity: 0;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .toast.err {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .empty {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--green);
+      margin-left: 10px;
+    }
+
+    .sync-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-name"><span style="font-size:16px;margin-right:6px">💈</span>Josh<span>R</span>Cutz</div>
+      <div class="brand-sub">Booking Dashboard</div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="window.switchView('overview', this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        Overview
+      </button>
+      <button class="nav-item" onclick="window.switchView('manage', this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add slots
+      </button>
+      <button class="nav-item" onclick="window.openClientPage()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Client page ↗
+      </button>
+      <button class="nav-item" onclick="window.switchView('settings', this)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Settings
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="status-dot" id="sidebar-dot"></span>
+      <span id="sidebar-status">Loading...</span>
+      <span id="sync-badge" style="display:none;margin-left:6px"><span class="sync-dot"></span></span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="page-title">Overview</div>
+        <div class="page-sub" id="page-sub">All bookings at a glance</div>
+      </div>
+      <div style="display:flex;gap:8px" id="topbar-actions">
+        <button class="btn" onclick="window.clearOldSlots()">Clear old slots</button>
+        <button class="btn gold" onclick="window.switchView('manage', document.querySelectorAll('.nav-item')[1])">+ New slot</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div id="overview" class="view active">
+        <div class="stat-grid" id="stats"></div>
+        <div class="sec-head">All slots</div>
+        <table class="slot-table">
+          <thead>
+            <tr>
+              <th>Date & Time</th>
+              <th>Status</th>
+              <th>Client / Service</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-tbody"></tbody>
+        </table>
+      </div>
+
+      <div id="manage" class="view">
+        <div class="form-card">
+          <div class="sec-head" style="margin-bottom:20px">Add slots</div>
+          <div class="fg" style="margin-bottom:16px">
+            <label>Date</label>
+            <input type="text" id="nd" placeholder="e.g. April 12" style="font-size:14px;padding:10px 12px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);width:100%"/>
+          </div>
+          <div class="fg" style="margin-bottom:16px">
+            <label>Times</label>
+            <div id="time-slots-builder" style="display:flex;flex-direction:column;gap:8px;margin-top:4px"></div>
+            <button onclick="window.addTimeRow()" style="margin-top:10px;font-size:12px;padding:7px 16px;border:0.5px dashed var(--border);border-radius:var(--radius-sm);background:none;color:var(--muted);cursor:pointer;width:fit-content">+ Add time</button>
+          </div>
+          <button class="gold-btn" onclick="window.addSlots()">Save slots</button>
+        </div>
+      </div>
+
+      <div id="settings" class="view">
+        <div class="settings-wrap">
+          <div class="settings-section">
+            <div class="settings-title">Email notifications (EmailJS)</div>
+            <div class="settings-desc">
+              Clients get a confirmation when they book, and a cancellation email when you cancel them.<br><br>
+              1. Sign up free at <a href="https://emailjs.com" target="_blank">emailjs.com</a><br>
+              2. Add an Email Service (Gmail) → copy <strong>Service ID</strong><br>
+              3. Create a <strong>Booking Template</strong> → copy Template ID<br>
+              4. Create a <strong>Cancellation Template</strong> → copy Cancel Template ID<br>
+              5. Go to Account → copy <strong>Public Key</strong>
+            </div>
+            <div class="vars-box">
+              Template variables:
+              <code>{{client_name}}</code>
+              <code>{{client_email}}</code>
+              <code>{{slot_info}}</code>
+              <code>{{service}}</code>
+              <code>{{to_email}}</code>
+              <code>{{barber_email}}</code>
+            </div>
+            <div class="input-row"><label>Your email</label><input type="email" id="barber-email" placeholder="josh@example.com" oninput="window.saveSettings()"/></div>
+            <div class="input-row"><label>EmailJS Service ID</label><input type="text" id="ejs-service" placeholder="service_xxxxxxx" oninput="window.saveSettings()"/></div>
+            <div class="input-row"><label>Booking Template ID</label><input type="text" id="ejs-template" placeholder="template_xxxxxxx" oninput="window.saveSettings()"/></div>
+            <div class="input-row"><label>Cancellation Template ID</label><input type="text" id="ejs-cancel-template" placeholder="template_xxxxxxx" oninput="window.saveSettings()"/></div>
+            <div class="input-row"><label>EmailJS Public Key</label><input type="text" id="ejs-pubkey" placeholder="xxxxxxxxxxxxxxxxxxxx" oninput="window.saveSettings()"/></div>
+            <div id="conn-status"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="bmodal">
+  <div class="modal">
+    <div class="modal-title">Book a spot</div>
+    <div class="modal-slot" id="mslot-label"></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <div id="admin-svc-taper" onclick="window.adminPickSvc('taper')" style="flex:1;padding:10px;text-align:center;border:1.5px solid var(--gold);border-radius:var(--radius-sm);cursor:pointer;background:#1a1500;font-size:13px;font-weight:600;color:var(--gold)">Taper — $30</div>
+      <div id="admin-svc-fade" onclick="window.adminPickSvc('fade')" style="flex:1;padding:10px;text-align:center;border:0.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:var(--surface2);font-size:13px;color:var(--muted)">Fade — $35</div>
+    </div>
+    <input type="text" id="mname" placeholder="Client name"/>
+    <input type="email" id="memail" placeholder="Client email"/>
+    <div class="modal-acts">
+      <button onclick="window.closeModal()">Cancel</button>
+      <button class="confirm" id="confirm-btn" onclick="window.confirmBook()">Confirm</button>
+    </div>
+    <div class="sending" id="sending-msg">Sending emails...</div>
+  </div>
+</div>
+
+<div class="toast-wrap"><div class="toast" id="toast"></div></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {
+  getFirestore,
+  collection,
+  onSnapshot,
+  addDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAOu-ysXnDLz2498QSUlHViSZU2LhzVR28",
+  authDomain: "joshrcutz.firebaseapp.com",
+  projectId: "joshrcutz",
+  storageBucket: "joshrcutz.firebasestorage.app",
+  messagingSenderId: "658068371956",
+  appId: "1:658068371956:web:19c96f21a5342bda8861a1"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const slotsCol = collection(db, 'slots');
+
+let slots = [];
+let pendId = null;
+let adminSelSvc = 'taper';
+let cfg = JSON.parse(localStorage.getItem('jrc_cfg') || '{}');
+
+// Verify Firebase connection on load
+addDoc(slotsCol, { _test: true }).then(ref => {
+  deleteDoc(doc(db, 'slots', ref.id));
+  document.getElementById('sidebar-status').textContent = 'Firebase connected';
+  document.getElementById('sidebar-dot').className = 'status-dot ready';
+}).catch(err => {
+  document.getElementById('sidebar-status').textContent = 'DB error: ' + (err.code || err.message);
+});
+
+// Live listener — falls back to client-side sort if Firestore index is missing
+const primaryQuery = query(slotsCol, orderBy('date'), orderBy('start'));
+
+onSnapshot(
+  primaryQuery,
+  snap => {
+    slots = snap.docs.map(d => ({ ...d.data(), _id: d.id }));
+    document.getElementById('sync-badge').style.display = 'inline-flex';
+    renderAdmin();
+  },
+  () => {
+    onSnapshot(slotsCol, snap => {
+      slots = snap.docs
+        .map(d => ({ ...d.data(), _id: d.id }))
+        .sort((a, b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start));
+      document.getElementById('sync-badge').style.display = 'inline-flex';
+      renderAdmin();
+    });
+  }
+);
+
+// Format a time range like "10:00am–11:00am"
+function fmtRange(s, e) {
+  const [sh, sm] = s.split(':').map(Number);
+  const [eh, em] = e.split(':').map(Number);
+  const sa = sh >= 12 ? 'pm' : 'am';
+  const ea = eh >= 12 ? 'pm' : 'am';
+  const sh12 = sh % 12 || 12;
+  const eh12 = eh % 12 || 12;
+  const start = `${sh12}:${sm.toString().padStart(2, '0')}`;
+  const end = `${eh12}:${em.toString().padStart(2, '0')}${ea}`;
+  return sa === ea ? `${start}–${end}` : `${start}${sa}–${end}`;
+}
+
+// Format a slot as "Mon, Apr 7 · 10:00am–11:00am"
+function df(d, s, e) {
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + fmtRange(s, e);
+}
+
+function renderStats() {
+  const booked = slots.filter(s => s.status === 'booked').length;
+  const open = slots.filter(s => s.status === 'open').length;
+  const revenue = slots
+    .filter(s => s.status === 'booked')
+    .reduce((a, s) => a + parseInt(s.svc?.match(/\$(\d+)/)?.[1] || 0), 0);
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total slots</div><div class="stat-val">${slots.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Booked</div><div class="stat-val" style="color:var(--green)">${booked}</div></div>
+    <div class="stat-card"><div class="stat-label">Available</div><div class="stat-val" style="color:var(--gold)">${open}</div></div>
+    <div class="stat-card"><div class="stat-label">Est. revenue</div><div class="stat-val" style="color:var(--blue)">$${revenue}</div></div>
+  `;
+}
+
+function renderAdmin() {
+  renderStats();
+  const tbody = document.getElementById('admin-tbody');
+  if (!slots.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">No slots yet — add some in Add Slots.</td></tr>';
+    return;
+  }
+
+  const openSlots = slots.filter(x => x.status === 'open');
+
+  tbody.innerHTML = slots.map(s => {
+    const moveOpts = s.status === 'booked' && openSlots.length
+      ? `<select class="move-sel" onchange="window.moveBk('${s._id}', this.value)">
+           <option value="">Move to…</option>
+           ${openSlots.map(x => `<option value="${x._id}">${df(x.date, x.start, x.end)}</option>`).join('')}
+         </select>`
+      : '';
+
+    return `<tr>
+      <td style="font-weight:500">${df(s.date, s.start, s.end)}</td>
+      <td><span class="pill ${s.status}">${s.status}</span></td>
+      <td>
+        ${s.status === 'booked'
+          ? `<div class="client-cell">${s.client}</div><div class="client-email">${s.svc ? s.svc + ' · ' : ''}${s.email || ''}</div>`
+          : '<span style="color:var(--muted);font-size:12px">—</span>'}
+      </td>
+      <td>
+        <div class="tbl-actions">
+          ${s.status !== 'cancelled' ? `<button class="tbl-btn danger" onclick="window.cancelSlot('${s._id}')">Cancel</button>` : ''}
+          <button class="tbl-btn" onclick="window.delSlot('${s._id}')">Delete</button>
+        </div>
+        ${moveOpts}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// Parse user-typed time like "10am", "10:30", "2pm" → "10:00" or "14:30"
+function parseTime(val) {
+  val = val.trim().toLowerCase().replace(/\s+/g, '');
+  const m = val.match(/^(\d{1,2})(?::(\d{2}))?(am|pm)?$/);
+  if (!m) return null;
+  let h = parseInt(m[1]);
+  const min = parseInt(m[2] || '0');
+  const ampm = m[3];
+  if (min > 59) return null;
+  if (ampm === 'pm' && h !== 12) h += 12;
+  if (ampm === 'am' && h === 12) h = 0;
+  if (h > 23) return null;
+  return `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+}
+
+// Infer AM/PM for start time based on end time when not explicitly stated
+function inferStart(sv, endH24) {
+  sv = sv.trim().toLowerCase().replace(/\s+/g, '');
+  const m = sv.match(/^(\d{1,2})(?::(\d{2}))?(am|pm)?$/);
+  if (!m) return null;
+  let h = parseInt(m[1]);
+  const min = parseInt(m[2] || '0');
+  const ampm = m[3];
+  if (min > 59) return null;
+  if (ampm) {
+    if (ampm === 'pm' && h !== 12) h += 12;
+    if (ampm === 'am' && h === 12) h = 0;
+  } else {
+    const eh = parseInt(endH24.split(':')[0]);
+    if (eh >= 13 && h < 12) h += 12;
+  }
+  if (h > 23) return null;
+  return `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+}
+
+window.addTimeRow = function () {
+  const builder = document.getElementById('time-slots-builder');
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:8px;align-items:center';
+  row.innerHTML = `
+    <input type="text" placeholder="e.g. 10:00am" style="font-size:13px;padding:9px 11px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);flex:1"/>
+    <span style="color:var(--muted);font-size:13px">–</span>
+    <input type="text" placeholder="e.g. 11:00am" style="font-size:13px;padding:9px 11px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);flex:1"/>
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:0 4px;line-height:1">×</button>
+  `;
+  builder.appendChild(row);
+  row.querySelector('input').focus();
+};
+
+window.addSlots = async function () {
+  const raw = document.getElementById('nd').value.trim();
+  if (!raw) { showToast('Enter a date', true); return; }
+
+  let parsed = new Date(raw + ' ' + new Date().getFullYear());
+  if (isNaN(parsed)) { showToast('Date not recognized — try "April 12"', true); return; }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (parsed < today) parsed = new Date(raw + ' ' + (new Date().getFullYear() + 1));
+
+  const d = `${parsed.getFullYear()}-${(parsed.getMonth() + 1).toString().padStart(2, '0')}-${parsed.getDate().toString().padStart(2, '0')}`;
+  const rows = document.querySelectorAll('#time-slots-builder > div');
+  if (!rows.length) { showToast('Add at least one time', true); return; }
+
+  const toAdd = [];
+  let skipped = 0;
+  rows.forEach(row => {
+    const ins = row.querySelectorAll('input');
+    const sv = ins[0].value.trim();
+    const ev = ins[1].value.trim();
+    if (!sv && !ev) return;
+    const e = parseTime(ev);
+    const s = e && inferStart(sv, e);
+    if (s && e) toAdd.push({ start: s, end: e });
+    else skipped++;
+  });
+
+  if (!toAdd.length) { showToast('Check your times — try 10:00am', true); return; }
+
+  const existingOnDay = slots.filter(x => x.date === d);
+  const duplicates = toAdd.filter(n => existingOnDay.some(x => x.start === n.start && x.end === n.end));
+  if (duplicates.length) showToast(`${duplicates.length} duplicate time${duplicates.length > 1 ? 's' : ''} already exist — removed`, true);
+
+  const deduplicated = toAdd.filter(n => !existingOnDay.some(x => x.start === n.start && x.end === n.end));
+  if (!deduplicated.length) { showToast('All times already exist for this date', true); return; }
+
+  const toMinutes = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  const overlaps = deduplicated.filter(n => {
+    const ns = toMinutes(n.start), ne = toMinutes(n.end);
+    return existingOnDay.some(x => {
+      const xs = toMinutes(x.start), xe = toMinutes(x.end);
+      return ns < xe && ne > xs;
+    });
+  });
+
+  if (overlaps.length) {
+    const overlapStr = overlaps.map(o => fmtRange(o.start, o.end)).join(', ');
+    if (!confirm(`${overlaps.length} time${overlaps.length > 1 ? 's' : ''} overlap existing slots (${overlapStr}). Save anyway?`)) return;
+  }
+
+  const btn = document.querySelector('.gold-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    await Promise.all(
+      deduplicated.map(n => addDoc(slotsCol, { date: d, start: n.start, end: n.end, svc: '', status: 'open', client: '', email: '' }))
+    );
+    document.getElementById('nd').value = '';
+    document.getElementById('time-slots-builder').innerHTML = '';
+    const msg = `${deduplicated.length} slot${deduplicated.length > 1 ? 's' : ''} added${skipped ? ' (' + skipped + ' bad format skipped)' : ''}`;
+    showToast(msg);
+    window.switchView('overview', document.querySelector('.nav-item'));
+  } catch (err) {
+    showToast('Save failed: ' + (err.code || err.message || 'Check Firestore rules'), true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save slots';
+  }
+};
+
+window.cancelSlot = async function (id) {
+  const s = slots.find(x => x._id === id);
+  if (!s) return;
+  const wasBooked = s.status === 'booked' && s.email;
+  const { client: clientName = '', email: clientEmail = '', svc: clientSvc = '' } = s;
+  if (!confirm(wasBooked ? `Cancel ${clientName}'s booking? They will be notified by email.` : 'Cancel this slot?')) return;
+
+  await updateDoc(doc(db, 'slots', id), { status: 'cancelled', client: '', email: '', svc: '' });
+
+  if (wasBooked && clientEmail) {
+    const hasEJS = cfg.serviceId && cfg.cancelTemplateId && cfg.publicKey;
+    if (hasEJS) {
+      try {
+        emailjs.init(cfg.publicKey);
+        await emailjs.send(cfg.serviceId, cfg.cancelTemplateId, {
+          to_email: clientEmail, client_name: clientName,
+          slot_info: df(s.date, s.start, s.end), service: clientSvc, barber_email: cfg.barberEmail
+        });
+        showToast('Cancelled — client notified');
+      } catch {
+        showToast('Cancelled (email failed)', true);
+      }
+    } else {
+      showToast('Cancelled (add cancel template in Settings to notify client)');
+    }
+  } else {
+    showToast('Slot cancelled');
+  }
+};
+
+window.clearOldSlots = async function () {
+  const today = new Date().toISOString().split('T')[0];
+  const old = slots.filter(s => s.date < today);
+  if (!old.length) { showToast('No old slots to clear'); return; }
+  if (!confirm(`Delete ${old.length} past slot${old.length > 1 ? 's' : ''}? This cannot be undone.`)) return;
+  await Promise.all(old.map(s => deleteDoc(doc(db, 'slots', s._id))));
+  showToast(`${old.length} old slot${old.length > 1 ? 's' : ''} cleared`);
+};
+
+window.delSlot = async function (id) {
+  const s = slots.find(x => x._id === id);
+  if (!s) return;
+  const wasBooked = s.status === 'booked' && s.email;
+  if (!confirm(wasBooked ? `Delete ${s.client}'s booked slot? They will be notified by email.` : 'Delete this slot?')) return;
+
+  const { client: clientName = '', email: clientEmail = '', svc: clientSvc = '' } = s;
+  await deleteDoc(doc(db, 'slots', id));
+
+  if (wasBooked && clientEmail) {
+    const hasEJS = cfg.serviceId && cfg.cancelTemplateId && cfg.publicKey;
+    if (hasEJS) {
+      try {
+        emailjs.init(cfg.publicKey);
+        await emailjs.send(cfg.serviceId, cfg.cancelTemplateId, {
+          to_email: clientEmail, client_name: clientName,
+          slot_info: df(s.date, s.start, s.end), service: clientSvc, barber_email: cfg.barberEmail
+        });
+        showToast('Slot deleted — client notified');
+      } catch {
+        showToast('Deleted (cancellation email failed)', true);
+      }
+    } else {
+      showToast('Slot deleted (no cancel template set up in Settings)');
+    }
+  } else {
+    showToast('Slot deleted');
+  }
+};
+
+window.moveBk = async function (fromId, toId) {
+  if (!toId) return;
+  const fr = slots.find(x => x._id === fromId);
+  const to = slots.find(x => x._id === toId);
+  if (!fr || !to) return;
+  await Promise.all([
+    updateDoc(doc(db, 'slots', toId), { status: 'booked', client: fr.client, email: fr.email, svc: fr.svc }),
+    updateDoc(doc(db, 'slots', fromId), { status: 'open', client: '', email: '', svc: '' })
+  ]);
+  showToast('Booking moved');
+};
+
+window.adminPickSvc = function (svc) {
+  adminSelSvc = svc;
+  const selected = 'flex:1;padding:10px;text-align:center;border:1.5px solid var(--gold);border-radius:var(--radius-sm);cursor:pointer;background:#1a1500;font-size:13px;font-weight:600;color:var(--gold)';
+  const unselected = 'flex:1;padding:10px;text-align:center;border:0.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:var(--surface2);font-size:13px;color:var(--muted)';
+  document.getElementById('admin-svc-taper').style.cssText = svc === 'taper' ? selected : unselected;
+  document.getElementById('admin-svc-fade').style.cssText = svc === 'fade' ? selected : unselected;
+};
+
+window.openModal = function (id) {
+  pendId = id;
+  const s = slots.find(x => x._id === id);
+  document.getElementById('mslot-label').textContent = df(s.date, s.start, s.end);
+  document.getElementById('mname').value = '';
+  document.getElementById('memail').value = '';
+  document.getElementById('sending-msg').classList.remove('show');
+  document.getElementById('confirm-btn').disabled = false;
+  window.adminPickSvc('taper');
+  document.getElementById('bmodal').classList.add('open');
+};
+
+window.closeModal = function () {
+  document.getElementById('bmodal').classList.remove('open');
+  pendId = null;
+};
+
+window.confirmBook = async function () {
+  const name = document.getElementById('mname').value.trim();
+  const email = document.getElementById('memail').value.trim();
+  if (!name) { showToast('Enter a name', true); return; }
+
+  const s = slots.find(x => x._id === pendId);
+  if (!s) return;
+
+  const svcLabel = adminSelSvc === 'taper' ? 'Taper — $30' : 'Fade — $35';
+  await updateDoc(doc(db, 'slots', pendId), { status: 'booked', client: name, email, svc: svcLabel });
+
+  const hasEJS = cfg.serviceId && cfg.templateId && cfg.publicKey && cfg.barberEmail;
+  if (hasEJS && email) {
+    document.getElementById('sending-msg').classList.add('show');
+    document.getElementById('confirm-btn').disabled = true;
+    try {
+      emailjs.init(cfg.publicKey);
+      const base = { client_name: name, client_email: email, slot_info: df(s.date, s.start, s.end), service: svcLabel, barber_email: cfg.barberEmail };
+      await Promise.all([
+        emailjs.send(cfg.serviceId, cfg.templateId, { ...base, to_email: email }),
+        emailjs.send(cfg.serviceId, cfg.templateId, { ...base, to_email: cfg.barberEmail, client_name: 'New booking: ' + name })
+      ]);
+    } catch { /* email failed silently — booking already saved */ }
+  }
+  window.closeModal();
+  showToast('Booked!');
+};
+
+window.switchView = function (id, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  const titles = {
+    overview: ['Overview', 'All bookings at a glance'],
+    manage: ['Add slots', 'Post your availability'],
+    settings: ['Settings', 'Email notifications & preferences']
+  };
+  document.getElementById('page-title').textContent = titles[id][0];
+  document.getElementById('page-sub').textContent = titles[id][1];
+  document.getElementById('topbar-actions').style.display = id === 'overview' ? 'flex' : 'none';
+  if (id === 'settings') loadSettings();
+};
+
+window.openClientPage = function () {
+  if (window.electronAPI) {
+    window.electronAPI.openClientWindow();
+  } else {
+    window.open('client.html', '_blank');
+  }
+};
+
+function loadSettings() {
+  document.getElementById('barber-email').value = cfg.barberEmail || '';
+  document.getElementById('ejs-service').value = cfg.serviceId || '';
+  document.getElementById('ejs-template').value = cfg.templateId || '';
+  document.getElementById('ejs-cancel-template').value = cfg.cancelTemplateId || '';
+  document.getElementById('ejs-pubkey').value = cfg.publicKey || '';
+  updateConnStatus();
+}
+
+window.saveSettings = function () {
+  cfg.barberEmail = document.getElementById('barber-email').value.trim();
+  cfg.serviceId = document.getElementById('ejs-service').value.trim();
+  cfg.templateId = document.getElementById('ejs-template').value.trim();
+  cfg.cancelTemplateId = document.getElementById('ejs-cancel-template').value.trim();
+  cfg.publicKey = document.getElementById('ejs-pubkey').value.trim();
+  localStorage.setItem('jrc_cfg', JSON.stringify(cfg));
+  updateConnStatus();
+};
+
+function updateConnStatus() {
+  const ready = cfg.barberEmail && cfg.serviceId && cfg.templateId && cfg.publicKey;
+  const cancelReady = ready && cfg.cancelTemplateId;
+  document.getElementById('conn-status').innerHTML = ready
+    ? `<div class="connected-badge"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block"></span>${cancelReady ? 'All emails ready' : 'Booking emails on — add cancel template'}</div>`
+    : '';
+  document.getElementById('sidebar-dot').className = 'status-dot' + (ready ? ' ready' : '');
+  document.getElementById('sidebar-status').textContent = cancelReady ? 'All emails on' : ready ? 'Booking emails on' : 'Email not configured';
+}
+
+function showToast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (err ? ' err' : '');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+document.getElementById('bmodal').addEventListener('click', e => {
+  if (e.target === document.getElementById('bmodal')) window.closeModal();
+});
+
+updateConnStatus();
+</script>
+</body>
+</html>
